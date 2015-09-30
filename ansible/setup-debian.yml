@@ -1,0 +1,68 @@
+---
+# This playbook deploys the whole application stack in this site.
+
+- name: Setup Server
+  hosts: all
+  sudo: yes
+  
+  tasks:
+    - name: ensure apache is installed
+      apt: name=apache2 state=present
+
+    - name: make sure apache is running
+      action: service name=apache2 state=started enabled=true
+
+    - file: src=/etc/apache2/mods-available/rewrite.load dest=/etc/apache2/mods-enabled/rewrite.load state=link
+      notify: restart apache
+
+    - file: src=/etc/apache2/mods-available/headers.load dest=/etc/apache2/mods-enabled/headers.load state=link
+      notify: restart apache
+
+    - name: install MySQL
+      apt: name={{ item }} state=latest
+      with_items:
+        - mysql-server
+        - mysql-client
+        - python-mysqldb
+
+    - name: update mysql root user
+      mysql_user: name=root
+                  host={{ item }}
+                  password=changeme priv=*.*:ALL,GRANT
+                  login_user=root
+                  login_password=''
+      with_items:
+        - '%'
+        - localhost
+
+    - name: install PHP5 packages
+      apt: name={{ item }} state=latest
+      with_items:
+        - php5
+        - libapache2-mod-php5
+        - php5-cli
+        - php5-dev
+        - php5-mysql
+        - php-pear
+        - php5-mcrypt
+        - php5-gd
+        - php5-curl
+        - php5-xdebug
+        - php5-memcache
+        - php5-memcached
+        - php5-readline
+
+    - name: install nodejs
+      apt: name=nodejs state=latest
+
+    - name: install build essentials
+      apt: name=build-essential state=latest
+
+    - name: install rubygems
+      apt: name=rubygems state=present
+
+  handlers:
+    - name: restart apache
+      action: service name=apache2 state=restarted
+    - name: restart mysql
+      action: service name=mysql state=restarted

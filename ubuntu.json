@@ -1,0 +1,87 @@
+{
+    "builders": [
+        {
+            "type": "virtualbox-iso",
+            "disk_size": 20480,
+            "guest_os_type": "Ubuntu_64",
+            "headless": false,
+            "iso_urls": [
+                "iso/ubuntu-14.04.3-server-amd64.iso",
+                "http://releases.ubuntu.com/14.04/ubuntu-14.04.3-server-amd64.iso"
+            ],
+            "iso_checksum_type": "md5",
+            "iso_checksum": "9e5fecc94b3925bededed0fdca1bd417",
+            "ssh_username": "vagrant",
+            "ssh_password": "vagrant",
+            "ssh_port": 22,
+            "http_directory": "preseeds",
+            "ssh_wait_timeout": "10000s",
+            "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
+            "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+            "virtualbox_version_file": ".vbox_version",
+            "vm_name": "packer-ubuntu-14.04-x86_64",
+            "vboxmanage": [
+                [
+                    "modifyvm",
+                    "{{.Name}}",
+                    "--memory",
+                    "512"
+                ]
+            ],
+            "boot_command": [
+                "<esc><esc><enter><wait>",
+                "/install/vmlinuz noapic ",
+                "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu-preseed.cfg ",
+                "debian-installer=en_NZ auto locale=en_NZ kbd-chooser/method=us ",
+                "hostname=ubuntu14-04 ",
+                "fb=false debconf/frontend=noninteractive ",
+                "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
+                "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
+                "initrd=/install/initrd.gz -- <enter>"
+            ]
+        }
+    ],
+    "post-processors": [
+        {
+            "output": "builds/Ubuntu14.04.box",
+            "type": "vagrant"
+        }
+    ],
+    "provisioners": [
+        {
+            "override": {
+                "virtualbox-iso": {
+                    "scripts": [
+                        "scripts/base.sh",
+                        "scripts/node.sh",
+                        "scripts/virtualbox.sh",
+                        "scripts/vagrant.sh",
+                        "scripts/cleanup.sh"
+                    ]
+                }
+            },
+            "scripts": [
+                "scripts/base.sh",
+                "scripts/node.sh",
+                "scripts/vagrant.sh",
+                "scripts/cleanup.sh"
+            ],
+            "type": "shell",
+            "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'"
+        },
+        {
+            "type": "shell",
+            "execute_command": "echo 'vagrant' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+            "inline": [
+                "apt-get install python-setuptools",
+                "add-apt-repository ppa:rquillo/ansible",
+                "apt-get update",
+                "apt-get install -y ansible"
+            ]
+        },
+        {
+            "type": "ansible-local",
+            "playbook_file": "ansible/setup-ubuntu.yml"
+        }
+    ]
+}
