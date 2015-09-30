@@ -1,0 +1,1 @@
+Run /path/to/packer build ubuntu|debian-8-amd64.json to build vagrant box
