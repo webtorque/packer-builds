@@ -68,6 +68,7 @@
                     "scripts": [
                         "scripts/base.sh",
 						"scripts/node.sh",
+						"scripts/composer.sh",
                         "scripts/virtualbox.sh",
                         "scripts/vagrant.sh",
                         "scripts/cleanup.sh"
@@ -77,6 +78,7 @@
             "scripts": [
                 "scripts/base.sh",
 				"scripts/node.sh",
+				"scripts/composer.sh",
                 "scripts/vagrant.sh",
                 "scripts/cleanup.sh"
             ],
