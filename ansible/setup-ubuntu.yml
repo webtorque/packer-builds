@@ -18,6 +18,11 @@
     - file: src=/etc/apache2/mods-available/headers.load dest=/etc/apache2/mods-enabled/headers.load state=link
       notify: restart apache
 
+    - name: install git
+      apt: name={{ item }} state=latest
+      with_items:
+        - git
+
     - name: install MySQL
       apt: name={{ item }} state=latest
       with_items:
